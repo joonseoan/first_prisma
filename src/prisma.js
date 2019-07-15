@@ -80,30 +80,87 @@ const prisma = new Prisma({
 //     .then(users => console.log(JSON.stringify(users, undefined, 4)));
 
 
-// By using Async/Wait
+// [ By using Async/Wait ]
 // 1. create a new post
 // 2. Fetch all of the info about the users
 
+// Exist method of prisma
+// For instance, if we would like to know wheathor or not
+//  a specifc comment exists exist.Comment({ id: 'id'})
+// Plese, note "Comment" starts with upperletter
+
+// And also, we can put any other criteria to fid out it exist.
+prisma.exists.Comment({ 
+    id: 'cjy37zx56001p07572i9fix11',
+    text : 'Hahahaha',
+    author: {
+        id: "cjy0ytnjo001n0757pue36cpp"
+    }
+})
+    .then(result => console.log(result));
+
+
 const createPostForUser = async (authorId, data) => {
+    // Adding exist method
+    const userExist = await prisma.exists.User({ id: authorId }); 
+    if(!userExist) throw new Error('Unable to find the user');
+
     const post = await prisma.mutation.createPost({
         data: { ...data, author: { connect: { id: authorId }}},
-    }, '{ id }');
+    }, '{ author { id name email posts { id title body published }}}');
 
-    // One single user
-    const user = await prisma.query.user({
-        where: { id: authorId }
-    }, '{ id, name, email posts { id title body published }}');
+    // One single user / Uncessary
+    // const user = await prisma.query.user({
+    //     where: { id: authorId }
+    // }, '{ id, name, email posts { id title body published }}');
 
-    return user;
+    return post.author;
 }
 
-createPostForUser('cjy0zd3tr00310757sa4xij6r', {
-    title: 'Hey buddy',
-    body: 'I strongly recommend prisma',
+// createPostForUser('cjy0ytnjo001n0757pue36cpp', {
+//     title: 'When can I apply',
+//     body: 'I might not take a too long!!!',
+//     published: true
+// })
+// // because createPostForUser is a promise.
+// .then(user => console.log('user: ', JSON.stringify(user, undefined, 4)))
+// // Do not forget check out the error
+// .catch(e => console.log(e.message));
+
+const updatePostForUser = async (id, data) => {
+
+    const postExist = await prisma.exists.Post({ id });
+    if(!postExist) throw new Error('Unable to find the post');
+    
+    const post = await prisma.mutation.updatePost({
+        data,
+        where: {
+           id
+        }
+    },'{ author { id, name, email, posts { id title body published }}}');
+
+    return post.author
+
+
+    // Unecessary
+    // console.log('post: ', post)
+    // return await prisma.query.user({
+    //     // must specify author which is the first field of  'author {id} up and above'
+    //     where: { id: post.author.id }
+    // }, '{ id, name, email, posts { id, title, body, published }}')
+    
+}
+
+updatePostForUser('cjy36it4d00090757euqyg74t', {
+    title: 'Hot Sunday',
+    body: 'I wanna work out, by the way',
     published: false
 })
-// because createPostForUser is a promise.
-.then(user => console.log('user: ', user));
+.then(user => console.log(JSON.stringify(user, undefined, 4)))
+.catch(e => console.log(e.message));
+
+
+
 // [ Query ]
 // 1. Simple Query
 // "Prisma" itself creates querys when we create custom type schema.
