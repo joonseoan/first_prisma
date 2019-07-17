@@ -15,7 +15,8 @@ services:
             connector: postgres
             host: ec2-54-221-238-248.compute-1.amazonaws.com
             database: d923rhvvjch3eh
-            schema: public
+            # schema: public
+            # schema: reviewsDefault
             user: uvesibiovfxhuj
             password: f1283bc4105401511519ec6c353651537cd5998b28a7bb5055c8ad055301e08d
             ssl: true
